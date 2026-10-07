@@ -1,0 +1,3 @@
+$ python -c "import json; rows=[json.loads(l) for l in open('/var/folders/h_/06_ktbkn4nsg27pdm9xf9gg40000gn/T/tmp.CtDgby1O65/l4.json') if l.strip()]; print('worker processes seen:', len({r['pid'] for r in rows}), ' lifespan objects seen:', len({(r['pid'], r['lifespan_object']) for r in rows}))"
+worker processes seen: 4  lifespan objects seen: 4
+

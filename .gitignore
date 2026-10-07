@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+target/
+*.pyc
+.DS_Store
+
+# The machine-wide gitignore excludes scripts/; this repository needs them.
+!scripts/

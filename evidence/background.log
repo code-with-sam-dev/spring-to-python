@@ -1,0 +1,12 @@
+$ curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d '{"order_ref":"order-1","unit_price":500,"quantity":3,"currency":"GBP"}'
+{"id":208,"order_ref":"order-1","total":1500,"currency":"GBP","status":"CAPTURED"} HTTP 201
+
+$ echo 'not killed, receipts:' $(sql 'SELECT count(*) FROM receipts')
+not killed, receipts: 1
+
+$ curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d '{"order_ref":"order-2","unit_price":500,"quantity":3,"currency":"GBP"}'
+{"id":209,"order_ref":"order-2","total":1500,"currency":"GBP","status":"CAPTURED"} HTTP 201
+
+$ echo 'worker killed half a second later, receipts:' $(sql 'SELECT count(*) FROM receipts')
+worker killed half a second later, receipts: 1
+

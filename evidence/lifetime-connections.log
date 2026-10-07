@@ -1,0 +1,9 @@
+$ echo 'provider client built per request:' $(charges)
+provider client built per request: {"charges":5,"distinct_connections":5}
+
+$ echo 'provider client built in the lifespan:' $(charges)
+provider client built in the lifespan: {"charges":5,"distinct_connections":1}
+
+$ echo 'spring, one ProviderClient bean:' $(charges)
+spring, one ProviderClient bean: {"charges":5,"distinct_connections":1}
+

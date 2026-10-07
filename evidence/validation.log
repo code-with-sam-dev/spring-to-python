@@ -1,0 +1,8 @@
+$ curl -s -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d '{"order_ref":"order-42","unit_price":-5,"quantity":3,"currency":"GBP"}'
+{"detail":[{"type":"greater_than","loc":["body","unit_price"],"msg":"Input should be greater than 0","input":-5,"ctx":{"gt":0}}]}
+HTTP 422
+
+$ curl -s -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d '{"orderRef":"order-42","unitPrice":-5,"quantity":3,"currency":"GBP"}'
+{"timestamp":"2026-10-07T18:39:17.726Z","status":400,"error":"Bad Request","path":"/payments"}
+HTTP 400
+
