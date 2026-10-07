@@ -11,19 +11,19 @@ $ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/pa
 HTTP 500
 
 $ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d "$ORDER_42"
-HTTP 201
+HTTP 500
 
 $ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d "$ORDER_42"
 HTTP 500
 
 $ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d "$ORDER_42"
-HTTP 201
+HTTP 500
 
 $ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d "$ORDER_42"
-HTTP 201
+HTTP 500
 
 $ echo 'provider:' $(charges)
-provider: {"charges":5,"distinct_connections":3}
+provider: {"charges":8,"distinct_connections":4}
 
 $ echo rows in payments: $(sql 'SELECT count(*) FROM payments')
 rows in payments: 1
