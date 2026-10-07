@@ -1,7 +1,7 @@
 """How long does a FastAPI dependency live?
 
-A per-request dependency, the same one asked for twice in one
-request, and an object built once in the lifespan.
+A dependency per request, the same one asked for twice
+in one request, and an object built once in the lifespan.
 """
 import os
 from contextlib import asynccontextmanager

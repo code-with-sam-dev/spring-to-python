@@ -1,7 +1,7 @@
-"""The thread-limit experiment, with no database in the way.
+"""The thread limit, with no database in the way.
 
-Each payment calls the 2 second provider stub with a blocking
-client. RAISE_LIMIT=1 raises AnyIO's limiter from 40 to 100.
+Each payment calls the 2 second provider stub. With
+RAISE_LIMIT=1, AnyIO's limiter goes from 40 to 100.
 """
 import os
 from contextlib import asynccontextmanager
@@ -10,7 +10,9 @@ import httpx
 from anyio import to_thread
 from fastapi import FastAPI
 
-PROVIDER = os.environ.get("PROVIDER_URL", "http://127.0.0.1:8097")
+PROVIDER = os.environ.get(
+    "PROVIDER_URL", "http://127.0.0.1:8097"
+)
 
 
 @asynccontextmanager
@@ -45,4 +47,5 @@ def blocking() -> dict[str, str]:
 @app.post("/payments/awaited")
 async def awaited() -> dict[str, str]:
     async with httpx.AsyncClient(timeout=30) as client:
-        return (await client.post(f"{PROVIDER}/charges")).json()
+        response = await client.post(f"{PROVIDER}/charges")
+        return response.json()
