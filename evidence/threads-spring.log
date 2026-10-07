@@ -1,16 +1,16 @@
 $ load http://127.0.0.1:8095 /payments/blocking 10
-10 payments in 2.12 s, /health answered in 0.01 s, status codes {200: 10}
-RESULT {"n": 10, "seconds": 2.12, "health_seconds": 0.01, "status_codes": {"200": 10}}
+10 payments in 2.15 s, /health answered in 0.0 s, status codes {200: 10}
+RESULT {"n": 10, "seconds": 2.15, "health_seconds": 0.0, "status_codes": {"200": 10}}
 
 $ load http://127.0.0.1:8095 /payments/blocking 40
 40 payments in 2.09 s, /health answered in 0.01 s, status codes {200: 40}
 RESULT {"n": 40, "seconds": 2.09, "health_seconds": 0.01, "status_codes": {"200": 40}}
 
 $ load http://127.0.0.1:8095 /payments/blocking 41
-41 payments in 2.08 s, /health answered in 0.01 s, status codes {200: 41}
-RESULT {"n": 41, "seconds": 2.08, "health_seconds": 0.01, "status_codes": {"200": 41}}
+41 payments in 2.1 s, /health answered in 0.0 s, status codes {200: 41}
+RESULT {"n": 41, "seconds": 2.1, "health_seconds": 0.0, "status_codes": {"200": 41}}
 
 $ load http://127.0.0.1:8095 /payments/blocking 100
-100 payments in 2.22 s, /health answered in 0.01 s, status codes {200: 100}
-RESULT {"n": 100, "seconds": 2.22, "health_seconds": 0.01, "status_codes": {"200": 100}}
+100 payments in 2.21 s, /health answered in 0.01 s, status codes {200: 100}
+RESULT {"n": 100, "seconds": 2.21, "health_seconds": 0.01, "status_codes": {"200": 100}}
 

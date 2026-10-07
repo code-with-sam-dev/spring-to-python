@@ -233,10 +233,15 @@ D=$(copy_fastapi in-memory-idempotency); P=$(start_fastapi "$D" 8099 --workers 4
 for _ in $(seq 1 8); do say workers-fastapi "curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d \"\$ORDER_42\""; done
 say workers-fastapi "echo 'provider:' \$(charges)"
 say workers-fastapi "echo rows in payments: \$(sql 'SELECT count(*) FROM payments')"
+charged=$(charges | "$PY" -c "import json,sys; print(json.load(sys.stdin)['charges'])")
+[ "$charged" -gt 1 ] || fail "four workers charged the same order only once"
+echo "  ok: four workers charged the same order $charged times"
 stop "$P"; stop_port 8099
 S2=$(copy_spring in-memory-idempotency); start_spring "$S2" 8098; reset
 for _ in $(seq 1 8); do say workers-spring "curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d \"\$SPRING_ORDER_42\""; done
 say workers-spring "echo 'provider:' \$(charges)"
+charges | grep -q '"charges":1,' || fail "one JVM charged the order more than once"
+echo "  ok: one JVM charged it once"
 stop_port 8098
 
 echo "== 8. the thread limit, with no database in the way"

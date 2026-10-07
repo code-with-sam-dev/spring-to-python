@@ -1,6 +1,6 @@
 $ load http://127.0.0.1:8096 /payments/blocking-in-async 10
-10 payments in 20.24 s, /health answered in 20.02 s, status codes {200: 10}
-RESULT {"n": 10, "seconds": 20.24, "health_seconds": 20.02, "status_codes": {"200": 10}}
+10 payments in 20.22 s, /health answered in 20.01 s, status codes {200: 10}
+RESULT {"n": 10, "seconds": 20.22, "health_seconds": 20.01, "status_codes": {"200": 10}}
 
 $ load http://127.0.0.1:8096 /payments/awaited 10
 10 payments in 2.09 s, /health answered in 0.0 s, status codes {200: 10}
@@ -11,14 +11,14 @@ $ load http://127.0.0.1:8096 /payments/blocking 10
 RESULT {"n": 10, "seconds": 2.05, "health_seconds": 0.0, "status_codes": {"200": 10}}
 
 $ load http://127.0.0.1:8096 /payments/blocking 40
-40 payments in 2.11 s, /health answered in 0.0 s, status codes {200: 40}
-RESULT {"n": 40, "seconds": 2.11, "health_seconds": 0.0, "status_codes": {"200": 40}}
+40 payments in 2.1 s, /health answered in 0.0 s, status codes {200: 40}
+RESULT {"n": 40, "seconds": 2.1, "health_seconds": 0.0, "status_codes": {"200": 40}}
 
 $ load http://127.0.0.1:8096 /payments/blocking 41
 41 payments in 4.11 s, /health answered in 0.0 s, status codes {200: 41}
 RESULT {"n": 41, "seconds": 4.11, "health_seconds": 0.0, "status_codes": {"200": 41}}
 
 $ load http://127.0.0.1:8096 /payments/blocking 100
-100 payments in 6.21 s, /health answered in 0.0 s, status codes {200: 100}
-RESULT {"n": 100, "seconds": 6.21, "health_seconds": 0.0, "status_codes": {"200": 100}}
+100 payments in 6.23 s, /health answered in 0.0 s, status codes {200: 100}
+RESULT {"n": 100, "seconds": 6.23, "health_seconds": 0.0, "status_codes": {"200": 100}}
 
