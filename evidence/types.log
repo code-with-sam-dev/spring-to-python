@@ -6,7 +6,7 @@ experiments/types_checked.py:3: error: Argument 1 to "total" has incompatible ty
 Found 1 error in 1 file (checked 1 source file)
 (exit 1)
 
-$ javac -d "/var/folders/h_/06_ktbkn4nsg27pdm9xf9gg40000gn/T/tmp.oSftx9NgTw/tc" experiments/TypesChecked.java
+$ javac -d "/var/folders/h_/06_ktbkn4nsg27pdm9xf9gg40000gn/T/tmp.bx55YgzQu3/tc" experiments/TypesChecked.java
 experiments/TypesChecked.java:10: error: incompatible types: String cannot be converted to long
         System.out.println(total("5", 3));
                                  ^
