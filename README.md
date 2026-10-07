@@ -41,6 +41,7 @@ hold. The transcripts land in `evidence/`.
   never the app itself.
   - `async-blocking`: the route made `async def` while it still calls a blocking client.
   - `no-transaction`: the session without `session.begin()`.
+  - `commit-after-response`: `session.begin()`, but in the default request scope, so it commits after the response.
   - `provider-per-request`: the provider client built on every request.
   - `in-memory-idempotency`: duplicate payments tracked in process memory.
   - `limiter-100`: AnyIO's thread limiter raised from 40 to 100.

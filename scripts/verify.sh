@@ -102,6 +102,7 @@ ORDER_2='{"order_ref":"order-2","unit_price":500,"quantity":3,"currency":"GBP"}'
 SPRING_PAYMENT='{"orderRef":"order","unitPrice":500,"quantity":3,"currency":"GBP"}'
 SPRING_ORDER_42='{"orderRef":"order-42","unitPrice":500,"quantity":3,"currency":"GBP"}'
 INVALID='{"order_ref":"order-42","unit_price":-5,"quantity":3,"currency":"GBP"}'
+STRING_FIVE='{"order_ref":"order-5","unit_price":"5","quantity":3,"currency":"GBP"}'
 SPRING_INVALID='{"orderRef":"order-42","unitPrice":-5,"quantity":3,"currency":"GBP"}'
 load() { "$PY" scripts/load.py "$@"; }
 
@@ -109,6 +110,11 @@ echo "== setup"
 "$PY" --version
 "$PY" -c "import fastapi, pydantic, sqlalchemy, uvicorn; print('fastapi', fastapi.__version__, 'pydantic', pydantic.VERSION, 'sqlalchemy', sqlalchemy.__version__, 'uvicorn', uvicorn.__version__)"
 "$JAVA" -version 2>&1 | head -1
+{ "$PY" --version
+  "$PY" -c "import fastapi, pydantic, sqlalchemy, uvicorn, psycopg, httpx; print('fastapi', fastapi.__version__); print('pydantic', pydantic.VERSION); print('sqlalchemy', sqlalchemy.__version__); print('uvicorn', uvicorn.__version__); print('psycopg', psycopg.__version__); print('httpx', httpx.__version__)"
+  "$JAVA" -version 2>&1 | head -1
+  echo "spring-boot $(sed -n 's:.*<version>\(4[^<]*\)</version>.*:\1:p' spring-payments/pom.xml | head -1)"
+} > "$EVIDENCE/versions.log"
 docker compose up -d postgres >/dev/null
 for _ in $(seq 1 60); do docker compose exec -T postgres pg_isready -U payments >/dev/null 2>&1 && break; sleep 1; done
 for p in 8095 8096 8097 8098 8099; do stop_port $p; done
@@ -152,6 +158,9 @@ D=$(copy_fastapi); P=$(start_fastapi "$D" 8099)
 say validation "curl -s -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d \"\$INVALID\""
 say validation "curl -s -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d \"\$SPRING_INVALID\""
 grep -q "HTTP 422" "$EVIDENCE/validation.log" && grep -q "HTTP 400" "$EVIDENCE/validation.log" || fail "422 and 400"
+say validation-coercion "curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d \"\$STRING_FIVE\""
+grep -q '"total":15,' "$EVIDENCE/validation-coercion.log" || fail "Pydantic did not turn the string 5 into the number 5"
+echo "  ok: Pydantic turned the string 5 into the number 5"
 echo "  ok: FastAPI 422, Spring 400"
 
 echo "== 4. the transaction"
@@ -217,7 +226,7 @@ say background "curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/
 sleep 3
 say background "echo 'not killed, receipts:' \$(sql 'SELECT count(*) FROM receipts')"
 say background "curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d \"\$ORDER_2\""
-stop "$P"; sleep 3
+sleep 0.5; stop "$P"; sleep 3
 say background "echo 'worker killed half a second later, receipts:' \$(sql 'SELECT count(*) FROM receipts')"
 grep -q "not killed, receipts: 1" "$EVIDENCE/background.log" && grep -q "later, receipts: 1" "$EVIDENCE/background.log" \
   || fail "one receipt, and none for the killed worker"
@@ -246,6 +255,11 @@ echo "  ok: one JVM charged it once"
 stop_port 8098
 
 echo "== 8. the thread limit, with no database in the way"
+say defaults "python experiments/limiter_default.py"
+grep -q "limiter: 40 tokens" "$EVIDENCE/defaults.log" || fail "AnyIO's default is no longer 40"
+TOMCAT_JAR="$HOME/.m2/repository/org/springframework/boot/spring-boot-tomcat/4.1.1/spring-boot-tomcat-4.1.1.jar"
+unzip -p "$TOMCAT_JAR" META-INF/spring-configuration-metadata.json | "$PY" -c "import json,sys; d=json.load(sys.stdin); print('Spring Boot 4.1.1, server.tomcat.threads.max default:', [p.get('defaultValue') for p in d['properties'] if p['name']=='server.tomcat.threads.max'][0])" | log defaults
+grep -q "threads.max default: 200" "$EVIDENCE/defaults.log" || fail "Tomcat's default is no longer 200"
 (cd experiments && exec "$UVICORN" fastapi_threads:app --port 8096 --log-level warning >"$WORK/threads.log" 2>&1) &
 PIDS+=("$!"); wait_http http://127.0.0.1:8096/health
 say threads-fastapi "load http://127.0.0.1:8096 /payments/blocking-in-async 10"
