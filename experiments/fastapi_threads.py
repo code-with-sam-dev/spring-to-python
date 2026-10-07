@@ -47,5 +47,5 @@ def blocking() -> dict[str, str]:
 @app.post("/payments/awaited")
 async def awaited() -> dict[str, str]:
     async with httpx.AsyncClient(timeout=30) as client:
-        response = await client.post(f"{PROVIDER}/charges")
-        return response.json()
+        sent = await client.post(f"{PROVIDER}/charges")
+        return sent.json()
