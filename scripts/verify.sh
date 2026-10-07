@@ -169,6 +169,8 @@ grep -q "HTTP 201" "$EVIDENCE/transaction-no-begin.log" && grep -q "later: *paym
   || fail "no begin: 201 and the row never exists"
 echo "  ok: no begin: 201, and the row never exists"
 stop "$P"
+say fastapi-scope "python experiments/scope_doc.py"
+grep -q "after\*\* the response is sent" "$EVIDENCE/fastapi-scope.log" || fail "FastAPI's docstring no longer says request scope ends after the response"
 D=$(copy_fastapi commit-after-response); P=$(start_fastapi "$D" 8099); reset
 tx_case transaction-request-scope 8099 ORDER_42
 grep -q "after the 201: *payments: 0" "$EVIDENCE/transaction-request-scope.log" && grep -q "later: *payments: 1" "$EVIDENCE/transaction-request-scope.log" \

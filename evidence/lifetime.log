@@ -1,6 +1,6 @@
 $ curl -s -X POST http://127.0.0.1:8096/charge
-{"same_object_twice_in_one_request":true,"built":{"per_request":1,"lifespan":1},"pid":82615,"lifespan_object":4418675648}
+{"same_object_twice_in_one_request":true,"built":{"per_request":1,"lifespan":1},"pid":85255,"lifespan_object":4451541952}
 $ curl -s -X POST http://127.0.0.1:8096/charge
-{"same_object_twice_in_one_request":true,"built":{"per_request":2,"lifespan":1},"pid":82615,"lifespan_object":4418675648}
+{"same_object_twice_in_one_request":true,"built":{"per_request":2,"lifespan":1},"pid":85255,"lifespan_object":4451541952}
 $ curl -s -X POST http://127.0.0.1:8096/charge
-{"same_object_twice_in_one_request":true,"built":{"per_request":3,"lifespan":1},"pid":82615,"lifespan_object":4418675648}
+{"same_object_twice_in_one_request":true,"built":{"per_request":3,"lifespan":1},"pid":85255,"lifespan_object":4451541952}

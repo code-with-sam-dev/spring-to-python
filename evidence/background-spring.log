@@ -1,5 +1,5 @@
-$ curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d '{"orderRef":"order-42","unitPrice":500,"quantity":3,"currency":"GBP"}'
-{"id":210,"orderRef":"order-42","total":1500,"currency":"GBP","status":"CAPTURED"} HTTP 201
+$ curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d "$SPRING_ORDER_42"
+{"id":271,"orderRef":"order-42","total":1500,"currency":"GBP","status":"CAPTURED"} HTTP 201
 
 $ echo 'spring @Async, JVM killed, receipts:' $(sql 'SELECT count(*) FROM receipts')
 spring @Async, JVM killed, receipts: 0

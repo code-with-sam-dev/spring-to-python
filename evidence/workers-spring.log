@@ -1,25 +1,25 @@
-$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d '{"orderRef":"order-42","unitPrice":500,"quantity":3,"currency":"GBP"}'
+$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d "$SPRING_ORDER_42"
 HTTP 201
 
-$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d '{"orderRef":"order-42","unitPrice":500,"quantity":3,"currency":"GBP"}'
+$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d "$SPRING_ORDER_42"
 HTTP 201
 
-$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d '{"orderRef":"order-42","unitPrice":500,"quantity":3,"currency":"GBP"}'
+$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d "$SPRING_ORDER_42"
 HTTP 201
 
-$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d '{"orderRef":"order-42","unitPrice":500,"quantity":3,"currency":"GBP"}'
+$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d "$SPRING_ORDER_42"
 HTTP 201
 
-$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d '{"orderRef":"order-42","unitPrice":500,"quantity":3,"currency":"GBP"}'
+$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d "$SPRING_ORDER_42"
 HTTP 201
 
-$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d '{"orderRef":"order-42","unitPrice":500,"quantity":3,"currency":"GBP"}'
+$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d "$SPRING_ORDER_42"
 HTTP 201
 
-$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d '{"orderRef":"order-42","unitPrice":500,"quantity":3,"currency":"GBP"}'
+$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d "$SPRING_ORDER_42"
 HTTP 201
 
-$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d '{"orderRef":"order-42","unitPrice":500,"quantity":3,"currency":"GBP"}'
+$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d "$SPRING_ORDER_42"
 HTTP 201
 
 $ echo 'provider:' $(charges)

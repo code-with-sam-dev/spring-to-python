@@ -1,4 +1,4 @@
-$ load http://127.0.0.1:8099 /payments 10 --body '{"order_ref":"order","unit_price":500,"quantity":3,"currency":"GBP"}'
-10 payments in 2.1 s, /health answered in 0.0 s, status codes {201: 10}
-RESULT {"n": 10, "seconds": 2.1, "health_seconds": 0.0, "status_codes": {"201": 10}}
+$ load http://127.0.0.1:8099 /payments 10 --body "$PAYMENT"
+10 payments in 2.09 s, /health answered in 0.0 s, status codes {201: 10}
+RESULT {"n": 10, "seconds": 2.09, "health_seconds": 0.0, "status_codes": {"201": 10}}
 
