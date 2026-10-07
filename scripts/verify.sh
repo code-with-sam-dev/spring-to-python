@@ -157,6 +157,7 @@ echo "  ok: FastAPI 422, Spring 400"
 echo "== 4. the transaction"
 rows() { echo "$1 payments: $(sql 'SELECT count(*) FROM payments'), receipts: $(sql 'SELECT count(*) FROM receipts')"; }
 tx_case() { # <evidence> <port>: one payment, rows right after the 201 and five seconds later
+  sleep 3; reset  # receipts from earlier payments land first, so the counts start at zero
   say "$1" "curl -s -w ' HTTP %{http_code}\\n' -X POST http://127.0.0.1:$2/payments -H 'content-type: application/json' -d \"\$$3\""
   say "$1" "rows 'right after the 201:'"
   sleep 5

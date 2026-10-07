@@ -15,9 +15,7 @@ def get_session(request: Request) -> Iterator[Session]:
 
 def payment_service(
     request: Request,
-    session: Session = Depends(
-        get_session, scope="function"
-    ),
+    session: Session = Depends(get_session),
 ) -> PaymentService:
     provider = request.app.state.provider
     return PaymentService(PaymentStore(session), provider)
