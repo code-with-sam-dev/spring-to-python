@@ -1,5 +1,5 @@
 $ curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d "$ORDER_42"
-{"id":430,"order_ref":"order-42","total":1500,"currency":"GBP","status":"CAPTURED"} HTTP 201
+{"id":33,"order_ref":"order-42","total":1500,"currency":"GBP","status":"CAPTURED"} HTTP 201
 
 $ rows 'right after the 201:'
 right after the 201: payments: 1, receipts: 0

@@ -1,0 +1,4 @@
+$ python experiments/limiter_default.py
+AnyIO default thread limiter: 40 tokens
+
+Spring Boot 4.1.1, server.tomcat.threads.max default: 200

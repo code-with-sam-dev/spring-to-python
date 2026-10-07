@@ -1,4 +1,4 @@
 $ load http://127.0.0.1:8099 /payments 10 --body "$PAYMENT"
-10 payments in 20.34 s, /health answered in 20.12 s, status codes {201: 10}
-RESULT {"n": 10, "seconds": 20.34, "health_seconds": 20.12, "status_codes": {"201": 10}}
+10 payments in 20.32 s, /health answered in 18.08 s, status codes {201: 10}
+RESULT {"n": 10, "seconds": 20.32, "health_seconds": 18.08, "status_codes": {"201": 10}}
 

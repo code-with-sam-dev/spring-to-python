@@ -1,4 +1,4 @@
 $ load http://127.0.0.1:8098 /payments 10 --body "$SPRING_PAYMENT"
-10 payments in 2.25 s, /health answered in 0.01 s, status codes {201: 10}
-RESULT {"n": 10, "seconds": 2.25, "health_seconds": 0.01, "status_codes": {"201": 10}}
+10 payments in 2.26 s, /health answered in 0.0 s, status codes {201: 10}
+RESULT {"n": 10, "seconds": 2.26, "health_seconds": 0.0, "status_codes": {"201": 10}}
 
