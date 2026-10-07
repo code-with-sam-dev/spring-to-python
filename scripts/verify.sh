@@ -94,8 +94,15 @@ stop_port() { local p; p=$(lsof -ti tcp:"$1" -sTCP:LISTEN || true); [ -n "$p" ] 
 reset() { sql "TRUNCATE payments, receipts" >/dev/null; curl -s -X DELETE "$PROVIDER_URL/connections" >/dev/null; }
 charges() { curl -s "$PROVIDER_URL/connections"; }
 
+# Named once, so each transcript shows the command as it was typed.
 PAYMENT='{"order_ref":"order","unit_price":500,"quantity":3,"currency":"GBP"}'
-SPRING_PAYMENT='{"orderRef":"order-42","unitPrice":500,"quantity":3,"currency":"GBP"}'
+ORDER_42='{"order_ref":"order-42","unit_price":500,"quantity":3,"currency":"GBP"}'
+ORDER_1='{"order_ref":"order-1","unit_price":500,"quantity":3,"currency":"GBP"}'
+ORDER_2='{"order_ref":"order-2","unit_price":500,"quantity":3,"currency":"GBP"}'
+SPRING_PAYMENT='{"orderRef":"order","unitPrice":500,"quantity":3,"currency":"GBP"}'
+SPRING_ORDER_42='{"orderRef":"order-42","unitPrice":500,"quantity":3,"currency":"GBP"}'
+INVALID='{"order_ref":"order-42","unit_price":-5,"quantity":3,"currency":"GBP"}'
+SPRING_INVALID='{"orderRef":"order-42","unitPrice":-5,"quantity":3,"currency":"GBP"}'
 load() { "$PY" scripts/load.py "$@"; }
 
 echo "== setup"
@@ -114,19 +121,19 @@ grep -ho 'tests="[0-9]*" errors="0" skipped="0" failures="0"' spring-payments/ta
 
 echo "== 1. the hook: one blocking client call inside async def"
 D=$(copy_fastapi async-blocking); P=$(start_fastapi "$D" 8099); reset
-say hook-fastapi-async-def "load http://127.0.0.1:8099 /payments 10 --body '$PAYMENT'"
+say hook-fastapi-async-def "load http://127.0.0.1:8099 /payments 10 --body \"\$PAYMENT\""
 R=$(result "$EVIDENCE/hook-fastapi-async-def.log")
 check "async def: ten payments take about 20 s" "seconds >= 18" "$R"
 check "async def: /health waits behind them" "health_seconds >= 15" "$R"
 stop "$P"
 D=$(copy_fastapi); P=$(start_fastapi "$D" 8099); reset
-say hook-fastapi-def "load http://127.0.0.1:8099 /payments 10 --body '$PAYMENT'"
+say hook-fastapi-def "load http://127.0.0.1:8099 /payments 10 --body \"\$PAYMENT\""
 R=$(result "$EVIDENCE/hook-fastapi-def.log")
 check "plain def: about 2 s" "seconds < 4" "$R"
 check "plain def: /health answers at once" "health_seconds < 1" "$R"
 stop "$P"
 S=$(copy_spring); start_spring "$S" 8098; reset
-say hook-spring "load http://127.0.0.1:8098 /payments 10 --body '${SPRING_PAYMENT/order-42/order}'"
+say hook-spring "load http://127.0.0.1:8098 /payments 10 --body \"\$SPRING_PAYMENT\""
 R=$(result "$EVIDENCE/hook-spring.log")
 check "spring: about 2 s" "seconds < 4" "$R"
 check "spring: /health answers at once" "health_seconds < 1" "$R"
@@ -142,39 +149,38 @@ echo "  ok: '555' at runtime, rejected by mypy"
 
 echo "== 3. validation: 422 against 400"
 D=$(copy_fastapi); P=$(start_fastapi "$D" 8099)
-say validation "curl -s -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d '{\"order_ref\":\"order-42\",\"unit_price\":-5,\"quantity\":3,\"currency\":\"GBP\"}'"
-say validation "curl -s -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d '{\"orderRef\":\"order-42\",\"unitPrice\":-5,\"quantity\":3,\"currency\":\"GBP\"}'"
+say validation "curl -s -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d \"\$INVALID\""
+say validation "curl -s -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d \"\$SPRING_INVALID\""
 grep -q "HTTP 422" "$EVIDENCE/validation.log" && grep -q "HTTP 400" "$EVIDENCE/validation.log" || fail "422 and 400"
 echo "  ok: FastAPI 422, Spring 400"
 
 echo "== 4. the transaction"
-ONE="${PAYMENT/\"order\"/\"order-42\"}"
 rows() { echo "$1 payments: $(sql 'SELECT count(*) FROM payments'), receipts: $(sql 'SELECT count(*) FROM receipts')"; }
 tx_case() { # <evidence> <port>: one payment, rows right after the 201 and five seconds later
-  say "$1" "curl -s -w ' HTTP %{http_code}\\n' -X POST http://127.0.0.1:$2/payments -H 'content-type: application/json' -d '$3'"
+  say "$1" "curl -s -w ' HTTP %{http_code}\\n' -X POST http://127.0.0.1:$2/payments -H 'content-type: application/json' -d \"\$$3\""
   say "$1" "rows 'right after the 201:'"
   sleep 5
   say "$1" "rows 'five seconds later:   '"
 }
 stop "$P"
 D=$(copy_fastapi no-transaction); P=$(start_fastapi "$D" 8099); reset
-tx_case transaction-no-begin 8099 "$ONE"
+tx_case transaction-no-begin 8099 ORDER_42
 grep -q "HTTP 201" "$EVIDENCE/transaction-no-begin.log" && grep -q "later: *payments: 0" "$EVIDENCE/transaction-no-begin.log" \
   || fail "no begin: 201 and the row never exists"
 echo "  ok: no begin: 201, and the row never exists"
 stop "$P"
 D=$(copy_fastapi commit-after-response); P=$(start_fastapi "$D" 8099); reset
-tx_case transaction-request-scope 8099 "$ONE"
+tx_case transaction-request-scope 8099 ORDER_42
 grep -q "after the 201: *payments: 0" "$EVIDENCE/transaction-request-scope.log" && grep -q "later: *payments: 1" "$EVIDENCE/transaction-request-scope.log" \
   || fail "request scope: committed only after the response"
 echo "  ok: request scope: the 201 went out before the commit"
 stop "$P"
 D=$(copy_fastapi); P=$(start_fastapi "$D" 8099); reset
-tx_case transaction-function-scope 8099 "$ONE"
+tx_case transaction-function-scope 8099 ORDER_42
 grep -q "after the 201: *payments: 1" "$EVIDENCE/transaction-function-scope.log" || fail "function scope: committed before the 201"
 echo "  ok: function scope: committed before the 201"
 stop "$P"; reset
-tx_case transaction-spring 8098 "$SPRING_PAYMENT"
+tx_case transaction-spring 8098 SPRING_ORDER_42
 grep -q "after the 201: *payments: 1" "$EVIDENCE/transaction-spring.log" || fail "spring: committed before the 201"
 echo "  ok: spring: committed before the 201"
 
@@ -198,16 +204,16 @@ D=$(copy_fastapi); P=$(start_fastapi "$D" 8099); reset
 for i in 1 2 3 4 5; do curl -s -o /dev/null -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d "${PAYMENT/\"order\"/\"order-$i\"}"; done
 say lifetime-connections "echo 'provider client built in the lifespan:' \$(charges)"
 stop "$P"; reset
-for i in 1 2 3 4 5; do curl -s -o /dev/null -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d "${SPRING_PAYMENT/order-42/order-$i}"; done
+for i in 1 2 3 4 5; do curl -s -o /dev/null -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d "${SPRING_PAYMENT/\"order\"/\"order-$i\"}"; done
 say lifetime-connections "echo 'spring, one ProviderClient bean:' \$(charges)"
 
 echo "== 6. work after the response"
 sleep 3  # receipts from the payments above are still on their way; let them land first
 D=$(copy_fastapi); P=$(start_fastapi "$D" 8099); reset
-say background "curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d '${PAYMENT/\"order\"/\"order-1\"}'"
+say background "curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d \"\$ORDER_1\""
 sleep 3
 say background "echo 'not killed, receipts:' \$(sql 'SELECT count(*) FROM receipts')"
-say background "curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d '${PAYMENT/\"order\"/\"order-2\"}'"
+say background "curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d \"\$ORDER_2\""
 stop "$P"; sleep 3
 say background "echo 'worker killed half a second later, receipts:' \$(sql 'SELECT count(*) FROM receipts')"
 grep -q "not killed, receipts: 1" "$EVIDENCE/background.log" && grep -q "later, receipts: 1" "$EVIDENCE/background.log" \
@@ -215,19 +221,19 @@ grep -q "not killed, receipts: 1" "$EVIDENCE/background.log" && grep -q "later, 
 echo "  ok: the killed worker's receipt never arrived"
 stop_port 8098; reset
 start_spring "$S" 8098
-say background-spring "curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d '$SPRING_PAYMENT'"
+say background-spring "curl -s -w ' HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d \"\$SPRING_ORDER_42\""
 stop_port 8098; sleep 3
 say background-spring "echo 'spring @Async, JVM killed, receipts:' \$(sql 'SELECT count(*) FROM receipts')"
 grep -q "receipts: 0" "$EVIDENCE/background-spring.log" || fail "spring's in-memory @Async lost it too"
 
 echo "== 7. workers are processes"
 D=$(copy_fastapi in-memory-idempotency); P=$(start_fastapi "$D" 8099 --workers 4); sleep 3; reset
-for _ in $(seq 1 8); do say workers-fastapi "curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d '${PAYMENT/\"order\"/\"order-42\"}'"; done
+for _ in $(seq 1 8); do say workers-fastapi "curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8099/payments -H 'content-type: application/json' -d \"\$ORDER_42\""; done
 say workers-fastapi "echo 'provider:' \$(charges)"
 say workers-fastapi "echo rows in payments: \$(sql 'SELECT count(*) FROM payments')"
 stop "$P"; stop_port 8099
 S2=$(copy_spring in-memory-idempotency); start_spring "$S2" 8098; reset
-for _ in $(seq 1 8); do say workers-spring "curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d '$SPRING_PAYMENT'"; done
+for _ in $(seq 1 8); do say workers-spring "curl -s -o /dev/null -w 'HTTP %{http_code}\n' -X POST http://127.0.0.1:8098/payments -H 'content-type: application/json' -d \"\$SPRING_ORDER_42\""; done
 say workers-spring "echo 'provider:' \$(charges)"
 stop_port 8098
 
